@@ -22,6 +22,6 @@ Maher-Framework is an automated, smart, and WAF-evasive Bug Bounty Pipeline writ
 
 ##  Installation
 ```bash
-git clone [https://github.com/Mohammed-Maher0/Maher-Framework.git](https://github.com/Mohammed-Maher0/Maher-Framework.git)
+git clone https://github.com/Mohammed-Maher0/Maher-Framework.git
 cd Maher-Framework
 chmod +x *.sh
