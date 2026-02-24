@@ -1,4 +1,4 @@
-#  Maher-Framework V6 - Dragon Edition
+#  Maher-Framework V6 
 
 
 
