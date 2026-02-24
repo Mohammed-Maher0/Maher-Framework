@@ -2,7 +2,7 @@
 WORK_DIR=$1
 
 echo "=========================================="
-echo "💣 [3] ATTACK PHASE: WAF-EVASION MODE"
+echo " [3] ATTACK PHASE: WAF-EVASION MODE"
 echo "=========================================="
 
 cd $WORK_DIR
