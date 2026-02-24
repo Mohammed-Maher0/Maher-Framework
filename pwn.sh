@@ -12,7 +12,7 @@ WORK_DIR="targets/${TARGET}_hunt_${TIMESTAMP}"
 
 echo -e "\e[32m"
 echo "================================================="
-echo "   🐉 MAHER FRAMEWORK V6 - DRAGON EDITION 🐉   "
+echo "    MAHER FRAMEWORK V6   "
 echo "================================================="
 echo "🎯 TARGET:  $TARGET"
 echo "📁 FOLDER:  $WORK_DIR"
