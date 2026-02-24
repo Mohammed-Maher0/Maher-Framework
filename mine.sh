@@ -2,7 +2,7 @@
 WORK_DIR=$1
 
 echo "=========================================="
-echo "⛏️ [2] MINING PHASE: DATA FILTERING"
+echo " [2] MINING PHASE: DATA FILTERING"
 echo "=========================================="
 
 cd $WORK_DIR
