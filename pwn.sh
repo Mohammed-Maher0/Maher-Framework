@@ -1,37 +1,34 @@
 #!/bin/bash
 
-TARGET=$1
+# 1. تعريف مصفوفة (Array) فاضية للهيدر
+HEADER_OPTS=()
+domain=""
 
-if [ -z "$TARGET" ]; then
-    echo -e "\e[31m[!] Usage: ./pwn.sh <domain.com>\e[0m"
-    exit 1
+# 2. تظبيط الـ getopts عشان يقبل حرف الـ H
+while getopts "d:H:" opt; do
+  case $opt in
+    d) domain=$OPTARG ;;
+    H) HEADER_OPTS=("-H" "$OPTARG") ;; # هنا لو ضاف الهيدر، هيتخزن صح بالمسافات
+    \?) echo "Usage: $0 -d <domain> [-H <Custom-Header>]"; exit 1 ;;
+  esac
+done
+
+echo "🎯 Target: $domain"
+if [ ${#HEADER_OPTS[@]} -ne 0 ]; then
+    echo "🛡️ Injecting Custom Header: ${HEADER_OPTS[1]}"
 fi
 
-TIMESTAMP=$(date +%F_%H-%M)
-WORK_DIR="targets/${TARGET}_hunt_${TIMESTAMP}"
+# ==========================================
+# 3. إزاي تحطها جنب الأدوات تحت في الكود؟
+# ==========================================
 
-echo -e "\e[32m"
-echo "================================================="
-echo "    MAHER FRAMEWORK V6   "
-echo "================================================="
-echo "🎯 TARGET:  $TARGET"
-echo "📁 FOLDER:  $WORK_DIR"
-echo "🕒 TIME:    $TIMESTAMP"
-echo "================================================="
-echo -e "\e[0m"
+# كل اللي هتعمله إنك هتحط "${HEADER_OPTS[@]}" جنب httpx و nuclei و katana بالشكل ده:
 
-# التعديل هنا: المايسترو هيسأل الـ Recon، لو فشل هيوقف السيستم كله
-if ! ./recon.sh $TARGET $WORK_DIR; then
-    echo -e "\e[31m[!] Mission Aborted: No targets found or Recon failed.\e[0m"
-    exit 1
-fi
+echo "🚀 Running HTTPX..."
+cat domains.txt | httpx "${HEADER_OPTS[@]}" -sc -title -o alive.txt
 
-./mine.sh $WORK_DIR
-./attack.sh $WORK_DIR
+echo "☢️ Running Nuclei..."
+nuclei -l alive.txt "${HEADER_OPTS[@]}" -t cves/ -o nuclei_output.txt
 
-echo -e "\e[32m"
-echo "================================================="
-echo "✅ MISSION COMPLETE!"
-echo "📄 Check your results in: $WORK_DIR"
-echo "================================================="
-echo -e "\e[0m"
+echo "🕷️ Running Katana..."
+katana -u alive.txt "${HEADER_OPTS[@]}" -o endpoints.txt
