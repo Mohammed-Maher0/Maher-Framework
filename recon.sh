@@ -49,7 +49,14 @@ cat resolved_subs.txt | alterx -silent > alterx_subs.txt
 puredns resolve alterx_subs.txt -r resolvers.txt --write resolved_alterx.txt -q
 cat resolved_subs.txt resolved_alterx.txt | sort -u > all_valid_subs.txt
 echo "    > Total Valid Subdomains (Including Permutations): $(wc -l < all_valid_subs.txt)"
-
+# ==========================================
+# Phase 3.5: Fallback for Single Domain Targets
+# ==========================================
+# حماية: لو مفيش أي دومينات طلعت، حط الدومين الأصلي كهدف وحيد عشان الماكينة متكراشش
+if [ ! -s all_valid_subs.txt ]; then
+    echo "$TARGET" > all_valid_subs.txt
+    echo -e "\e[33m[!] No subdomains found. Switching to Single Domain mode for: $TARGET\e[0m"
+fi
 # ==========================================
 # Phase 4: Port Scanning (Naabu) - من كودك القديم
 # ==========================================
