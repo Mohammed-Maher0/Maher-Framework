@@ -1,34 +1,66 @@
 #!/bin/bash
 
-# 1. تعريف مصفوفة (Array) فاضية للهيدر
-HEADER_OPTS=()
-domain=""
+TARGET=""
+CUSTOM_HEADER=""
 
-# 2. تظبيط الـ getopts عشان يقبل حرف الـ H
+# 1. استقبال المدخلات (الدومين بـ -d والهيدر بـ -H)
 while getopts "d:H:" opt; do
   case $opt in
-    d) domain=$OPTARG ;;
-    H) HEADER_OPTS=("-H" "$OPTARG") ;; # هنا لو ضاف الهيدر، هيتخزن صح بالمسافات
-    \?) echo "Usage: $0 -d <domain> [-H <Custom-Header>]"; exit 1 ;;
+    d) TARGET="$OPTARG" ;;
+    H) CUSTOM_HEADER="$OPTARG" ;;
+    \?) echo -e "\e[31m[!] Usage: $0 -d <domain.com> [-H \"Header: Value\"]\e[0m"; exit 1 ;;
   esac
 done
 
-echo "🎯 Target: $domain"
-if [ ${#HEADER_OPTS[@]} -ne 0 ]; then
-    echo "🛡️ Injecting Custom Header: ${HEADER_OPTS[1]}"
+# 2. التأكد من إدخال الدومين (حماية عشان السكريبت ميكراشش)
+if [ -z "$TARGET" ]; then
+    echo -e "\e[31m[!] Error: Target domain is required!\e[0m"
+    echo -e "\e[33m[?] Usage: ./pwn.sh -d <domain.com> [-H \"X-Bug-Bounty: HackerOne...\"]\e[0m"
+    exit 1
 fi
 
+# 3. السحر هنا: تصدير الهيدر للبيئة (Export) 
+# السطر ده هو اللي بيخلي recon.sh و mine.sh و attack.sh يشوفوا الهيدر من غير ما نبعتهولهم في الأمر
+if [ -n "$CUSTOM_HEADER" ]; then
+    export CUSTOM_BBP_HEADER="$CUSTOM_HEADER"
+fi
+
+TIMESTAMP=$(date +%F_%H-%M)
+WORK_DIR="targets/${TARGET}_hunt_${TIMESTAMP}"
+mkdir -p $WORK_DIR
+
+echo -e "\e[32m"
+echo "================================================="
+echo "    MAHER FRAMEWORK V7 (The Mastermind)          "
+echo "================================================="
+echo "🎯 TARGET:  $TARGET"
+echo "📁 FOLDER:  $WORK_DIR"
+echo "🕒 TIME:    $TIMESTAMP"
+if [ -n "$CUSTOM_HEADER" ]; then
+    echo "🛡️ HEADER:  $CUSTOM_HEADER"
+fi
+echo "================================================="
+echo -e "\e[0m"
+
 # ==========================================
-# 3. إزاي تحطها جنب الأدوات تحت في الكود؟
+# 4. تشغيل مراحل الفريم ورك بالترتيب
 # ==========================================
 
-# كل اللي هتعمله إنك هتحط "${HEADER_OPTS[@]}" جنب httpx و nuclei و katana بالشكل ده:
+echo -e "\e[34m[>] Launching Phase 1: RECON...\e[0m"
+if ! ./recon.sh $TARGET $WORK_DIR; then
+    echo -e "\e[31m[!] Mission Aborted: Recon failed.\e[0m"
+    exit 1
+fi
 
-echo "🚀 Running HTTPX..."
-cat domains.txt | httpx "${HEADER_OPTS[@]}" -sc -title -o alive.txt
+echo -e "\e[34m[>] Launching Phase 2: MINING...\e[0m"
+./mine.sh $WORK_DIR
 
-echo "☢️ Running Nuclei..."
-nuclei -l alive.txt "${HEADER_OPTS[@]}" -t cves/ -o nuclei_output.txt
+echo -e "\e[34m[>] Launching Phase 3: ATTACK...\e[0m"
+./attack.sh $WORK_DIR
 
-echo "🕷️ Running Katana..."
-katana -u alive.txt "${HEADER_OPTS[@]}" -o endpoints.txt
+echo -e "\e[32m"
+echo "================================================="
+echo "✅ MISSION COMPLETE!"
+echo "📄 Check your results in: $WORK_DIR"
+echo "================================================="
+echo -e "\e[0m"
